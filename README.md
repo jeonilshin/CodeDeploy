@@ -38,7 +38,7 @@ An important point to remember is that blue/green deployments work only with Ama
 The appspec.yml file stands for *application specification file*, app spec file for short, and is a file unique to CodeDeploy. It is designed to manage our deployments by a series of hooks, or events, that are defined in the Hooks section of the file. This is a file in YAML or JSON format. This file tells CodeDeploy what to install on our instances, and what to run based on hooks in response to our updates to the code.
 
 ### Examples of different Appspec files
-Lambda Appspec.yml file
+**Lambda Appspec.yml file**
 ```
 version: 0.0
 Resources:
@@ -54,7 +54,7 @@ Hooks:
   - AfterAllowTraffic: "LambdaFunctionToValidateAfterTrafficShift"
 ```
 
-EC2 Appspec.yml file
+**EC2 Appspec.yml file**
 ```
 version: 0.0
 os: linux
@@ -76,7 +76,7 @@ hooks:
       runas: root
 ```
 
-ECS Appspec.yml file
+**ECS Appspec.yml file**
 ```
 version: 0.0
 Resources:
@@ -89,11 +89,74 @@ Resources:
           ContainerPort: "<Container_Port>"
 ```
 
+# Example with Tutorial
+Please make sure that you add the following files to your project for this to work
+ - appspec.yml
+ - scripts/installapache
+ - scripts/restartapache
+ - scripts/startapache
 
+#### Create IAM Roles
+- CodeDeploy(iam.txt)
+- EC2CodeDeploy(iam.txt)
+ 
+#### Create EC2 instance with following categories
 
+a. Choose AMI: Amazon Linux AMI
 
+b. Choose Instance type: t2.micro
 
+c. Configure Instance: Choose EC2CodeDeploy IAM role
 
+d. Tag Instance: Name it what you please
 
+e. Configure Security Group:
+```
+HTTP TCP 80 0.0.0.0/0
 
+HTTP TCP 80 ::/0
 
+SSH TCP 22 (YOUR IP ADDRESS)
+
+HTTPS TCP 443 0.0.0.0/0
+
+HTTPS TCP 443 ::/0
+```
+f. LAUNCH INSTANCE
+
+#### Login to EC2 instance
+
+#### Command line of Amazon Linux AMI
+
+##### a. When server is booted
+```
+sudo su
+
+yum -y update
+
+yum install -y aws-cli
+
+cd /home/ec2-user
+```
+##### b. Here you will setup your AWS access, secret, and region.
+```
+aws configure
+
+aws s3 cp s3://aws-codedeploy-us-east-1/latest/install . --region ap-northeast-2
+
+aws s3 cp s3://aws-codedeploy-us-west-2/latest/install . --region ap-northeast-2
+
+chmod +x ./install
+```
+##### c. This is simply a quick hack to get the agent running faster.
+
+```
+sed -i "s/sleep(.*)/sleep(10)/" install
+
+./install auto
+```
+
+##### d. Verify it is running.
+```
+service codedeploy-agent status 
+```
